@@ -9,8 +9,7 @@ def generate_api_key(object):
     return get_random_string(length=40)
 
 class User(AbstractUser):
-    uuid = models.CharField(verbose_name=_("Unique ID"), help_text=_("The unique ID for the user."), max_length=100)
-    api_key = models.CharField(verbose_name=_("API Key"), help_text=_("The API key, that belongs to the user."), max_length=40, default=generate_api_key)
+    api_key = models.CharField(verbose_name=_("API Key"), help_text=_("The API key associated with this user."), max_length=40, default=generate_api_key)
     container_limit = models.IntegerField(verbose_name=_("Container Limit"), help_text=_("The total number of containers the user may have"), default=10)
     floating_ip_limit = models.IntegerField(verbose_name=_("Floating IP Limit"), help_text=_("The total number of floating IPs the user may have"), default=3)
 
