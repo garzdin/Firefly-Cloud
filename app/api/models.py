@@ -2,9 +2,14 @@ from __future__ import unicode_literals
 from django.utils.translation import ugettext as _
 from django.db import models
 from django.contrib.auth.models import AbstractUser
+from django.utils.crypto import get_random_string
 from constants import *
 
+def generate_api_key(object):
+    return get_random_string(length=40)
+
 class User(AbstractUser):
+    api_key = models.CharField(verbose_name=_("API Key"), help_text=_("The API key, that belongs to the user."), max_length=40, default=generate_api_key)
     container_limit = models.IntegerField(verbose_name=_("Container Limit"), help_text=_("The total number of containers the user may have"), default=10)
     floating_ip_limit = models.IntegerField(verbose_name=_("Floating IP Limit"), help_text=_("The total number of floating IPs the user may have"), default=3)
 
@@ -47,14 +52,18 @@ class Action(models.Model):
     completed_at = models.DateTimeField(verbose_name=_("Completed At"), help_text=_("A time value given in ISO8601 combined date and time format that represents when the action was completed."))
     resource = models.OneToOneField(Resource, verbose_name=_("Resource"), help_text=_("The resource that the action is associated with."))
     region = models.ForeignKey(Region, verbose_name=_("Region"), help_text=_("The region where the action occurred."))
+    user = models.ForeignKey(User, verbose_name=_("User"), help_text=_("The user associated with this action."))
 
 class Domain(models.Model):
     name = models.CharField(verbose_name=_("Name"), help_text=_("The name of the domain itself. This should follow the standard domain format of domain.TLD. For instance, example.com is a valid domain name."), max_length=60)
+    owner = models.ForeignKey(User, verbose_name=_("Owner"), help_text=_("The owner of the domain."))
     ttl = models.IntegerField(verbose_name=_("TTL"), help_text=_("This value is the time to live for the records on this domain, in seconds. This defines the time frame that clients can cache queried information before a refresh should be requested."))
     zone_file = models.TextField(verbose_name=_("Zone File"), help_text=_("This attribute contains the complete contents of the zone file for the selected domain. Individual domain record resources should be used to get more granular control over records. However, this attribute can also be used to get information about the SOA record, which is created automatically and is not accessible as an individual record resource."))
 
 class DomainRecord(models.Model):
     name = models.CharField(verbose_name=_("Name"), help_text=_("The name to use for the DNS record."), max_length=60)
+    owner = models.ForeignKey(User, verbose_name=_("Owner"), help_text=_("The owner of the domain record."))
+    domain = models.ForeignKey(Domain, verbose_name=_("Domain"), help_text=_("The domain, that this record belongs to."))
     type = models.IntegerField(verbose_name=_("Type"), help_text=_("The type of the DNS record (ex: A, CNAME, TXT, ...)."), choices=DOMAIN_RECORD_TYPES)
     data = models.CharField(verbose_name=_("Value"), help_text=_("The value to use for the DNS record."), max_length=60)
     priority = models.IntegerField(verbose_name=_("Priority"), help_text=_("The priority for SRV and MX records."), null=True)
@@ -73,11 +82,13 @@ class Kernel(models.Model):
 
 class SSHKey(models.Model):
     name = models.CharField(verbose_name=_("Name"), help_text=_("This is the human-readable display name for the given SSH key. This is used to easily identify the SSH keys when they are displayed."), max_length=60)
+    owner = models.ForeignKey(User, verbose_name=_("Owner"), help_text=_("The user, that this SSH key belongs to."))
     fingerprint = models.CharField(verbose_name=_("Fingerprint"), help_text=_("This attribute contains the fingerprint value that is generated from the public key. This is a unique identifier that will differentiate it from other keys using a format that SSH recognizes."), max_length=512)
     public_key = models.TextField(verbose_name=_("Public Key"), help_text=_("This attribute contains the entire public key string that was uploaded. This is what is embedded into the root user's authorized_keys file if you choose to include this SSH key during Container creation."))
 
 class Image(models.Model):
     name = models.CharField(verbose_name=_("Name"), help_text=_("The display name that has been given to an image. This is what is shown in the control panel and is generally a descriptive title for the image in question."), max_length=60)
+    owner = models.ForeignKey(User, verbose_name=_("Owner"), help_text=_("The owner of this image."))
     type = models.IntegerField(verbose_name=_("Type"), help_text=_("The kind of image, describing the duration of how long the image is stored. This is either \"snapshot\" or \"backup\"."), choices=IMAGE_TYPES)
     distribution = models.CharField(verbose_name=_("Distribution"), help_text=_("This attribute describes the base distribution used for this image."), max_length=100)
     slug = models.CharField(verbose_name=_("Slug"), help_text=_("A uniquely identifying string that is associated with each of the provided public images. These can be used to reference a public image as an alternative to the numeric id."), max_length=100)
@@ -97,6 +108,7 @@ class Storage(models.Model):
 
 class Container(models.Model):
     name = models.CharField(verbose_name=_("Name"), help_text=_("The human-readable name set for the Container instance."), max_length=60)
+    owner = models.ForeignKey(User, verbose_name=_("Owner"), help_text=_("The owner of the Container."))
     memory = models.IntegerField(verbose_name=_("Memory"), help_text=_("Memory of the Container in megabytes."))
     vcpus = models.IntegerField(verbose_name=_("CPUs"), help_text=_("The number of virtual CPUs."))
     disk = models.IntegerField(verbose_name=_("Disk"), help_text=_("The size of the Container's disk in gigabytes."))
