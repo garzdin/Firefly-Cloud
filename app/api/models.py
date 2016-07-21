@@ -5,7 +5,7 @@ from django.contrib.auth.models import AbstractUser
 from django.utils.crypto import get_random_string
 from constants import *
 
-def generate_api_key(object):
+def generate_api_key():
     return get_random_string(length=40)
 
 class User(AbstractUser):
