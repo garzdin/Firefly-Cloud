@@ -9,6 +9,7 @@ def generate_api_key(object):
     return get_random_string(length=40)
 
 class User(AbstractUser):
+    uuid = models.CharField(verbose_name=_("Unique ID"), help_text=_("The unique ID for the user."), max_length=100)
     api_key = models.CharField(verbose_name=_("API Key"), help_text=_("The API key, that belongs to the user."), max_length=40, default=generate_api_key)
     container_limit = models.IntegerField(verbose_name=_("Container Limit"), help_text=_("The total number of containers the user may have"), default=10)
     floating_ip_limit = models.IntegerField(verbose_name=_("Floating IP Limit"), help_text=_("The total number of floating IPs the user may have"), default=3)
@@ -46,6 +47,7 @@ class Region(models.Model):
     features = models.ManyToManyField(Feature, verbose_name=_("Features"), help_text=_("The features available in this region."))
 
 class Action(models.Model):
+    uuid = models.CharField(verbose_name=_("Unique ID"), help_text=_("The unique ID for the action."), max_length=100)
     status = models.IntegerField(verbose_name=_("Status"), help_text=_("The current status of the action."))
     type = models.CharField(verbose_name=_("Type"), help_text=_("This is the type of action that the object represents. For example, this could be \"transfer\" to represent the state of an image transfer action."), max_length=20)
     started_at = models.DateTimeField(verbose_name=_("Started At"), help_text=_("A time value given in ISO8601 combined date and time format that represents when the action was initiated."))
@@ -61,6 +63,7 @@ class Domain(models.Model):
     zone_file = models.TextField(verbose_name=_("Zone File"), help_text=_("This attribute contains the complete contents of the zone file for the selected domain. Individual domain record resources should be used to get more granular control over records. However, this attribute can also be used to get information about the SOA record, which is created automatically and is not accessible as an individual record resource."))
 
 class DomainRecord(models.Model):
+    uuid = models.CharField(verbose_name=_("Unique ID"), help_text=_("The unique ID for the domain record."), max_length=100)
     name = models.CharField(verbose_name=_("Name"), help_text=_("The name to use for the DNS record."), max_length=60)
     owner = models.ForeignKey(User, verbose_name=_("Owner"), help_text=_("The owner of the domain record."))
     domain = models.ForeignKey(Domain, verbose_name=_("Domain"), help_text=_("The domain, that this record belongs to."))
@@ -81,12 +84,14 @@ class Kernel(models.Model):
     version = models.CharField(verbose_name=_("Version"), help_text=_("The version of the kernel."), max_length=100)
 
 class SSHKey(models.Model):
+    uuid = models.CharField(verbose_name=_("Unique ID"), help_text=_("The unique ID for the SSH key."), max_length=100)
     name = models.CharField(verbose_name=_("Name"), help_text=_("This is the human-readable display name for the given SSH key. This is used to easily identify the SSH keys when they are displayed."), max_length=60)
     owner = models.ForeignKey(User, verbose_name=_("Owner"), help_text=_("The user, that this SSH key belongs to."))
     fingerprint = models.CharField(verbose_name=_("Fingerprint"), help_text=_("This attribute contains the fingerprint value that is generated from the public key. This is a unique identifier that will differentiate it from other keys using a format that SSH recognizes."), max_length=512)
     public_key = models.TextField(verbose_name=_("Public Key"), help_text=_("This attribute contains the entire public key string that was uploaded. This is what is embedded into the root user's authorized_keys file if you choose to include this SSH key during Container creation."))
 
 class Image(models.Model):
+    uuid = models.CharField(verbose_name=_("Unique ID"), help_text=_("The unique ID for the image."), max_length=100)
     name = models.CharField(verbose_name=_("Name"), help_text=_("The display name that has been given to an image. This is what is shown in the control panel and is generally a descriptive title for the image in question."), max_length=60)
     owner = models.ForeignKey(User, verbose_name=_("Owner"), help_text=_("The owner of this image."))
     type = models.IntegerField(verbose_name=_("Type"), help_text=_("The kind of image, describing the duration of how long the image is stored. This is either \"snapshot\" or \"backup\"."), choices=IMAGE_TYPES)
@@ -99,6 +104,7 @@ class Image(models.Model):
     created_at = models.DateTimeField(verbose_name=_("Created At"), help_text=_("A time value given in ISO8601 combined date and time format that represents when the Image was created."))
 
 class Storage(models.Model):
+    uuid = models.CharField(verbose_name=_("Unique ID"), help_text=_("The unique ID for the storage volume."), max_length=100)
     name = models.CharField(verbose_name=_("Name"), help_text=_("A human-readable name for the Storage volume. Must be lowercase and be composed only of numbers, letters and \"-\", up to a limit of 64 characters."), max_length=64)
     region = models.ForeignKey(Region, verbose_name=_("Region"), help_text=_("The region that the Storage volume is located in."))
     containers = models.ForeignKey('Container', verbose_name=_("Containers"), help_text=_("The Containers the volume is attached to."))
@@ -107,6 +113,7 @@ class Storage(models.Model):
     created_at = models.DateTimeField(verbose_name=_("Created At"), help_text=_("A time value given in ISO8601 combined date and time format that represents when the Storage volume was created."))
 
 class Container(models.Model):
+    uuid = models.CharField(verbose_name=_("Unique ID"), help_text=_("The unique ID for the container."), max_length=100)
     name = models.CharField(verbose_name=_("Name"), help_text=_("The human-readable name set for the Container instance."), max_length=60)
     owner = models.ForeignKey(User, verbose_name=_("Owner"), help_text=_("The owner of the Container."))
     memory = models.IntegerField(verbose_name=_("Memory"), help_text=_("Memory of the Container in megabytes."))
@@ -127,6 +134,7 @@ class Container(models.Model):
     volumes = models.ManyToManyField(Storage, verbose_name=_("Volumes"), help_text=_("A collection containing each Storage volume attached to the Container."))
 
 class FloatingIP(models.Model):
+    uuid = models.CharField(verbose_name=_("Unique ID"), help_text=_("The unique ID for the floating IP."), max_length=100)
     ip = models.CharField(verbose_name=_("IP"), help_text=_("The public IP address of the Floating IP. It also serves as its identifier."), max_length=45)
     region = models.ForeignKey(Region, verbose_name=_("Region"), help_text=_("The region that the Floating IP is reserved to. When you query a Floating IP, the entire region object will be returned."))
     container = models.ForeignKey(Container, verbose_name=_("Container"), help_text=_("The Container that the Floating IP has been assigned to."))
