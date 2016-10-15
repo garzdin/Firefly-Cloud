@@ -17,4 +17,6 @@ from django.conf.urls import url, include
 from api import *
 
 urlpatterns = [
+    url(r'^', include(api.router.urls)),
+    url(r'^auth/', include('rest_framework.urls', namespace='rest_framework')),
 ]
